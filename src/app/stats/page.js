@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getMotors, getAllServices } from '@/lib/firestore';
 import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
 import BottomNav from '@/components/BottomNav';
+import Link from 'next/link';
 
 export default function StatsPage() {
   const [stats, setStats] = useState({
@@ -50,7 +51,10 @@ export default function StatsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-900 font-semibold">Memuat data...</p>
+        </div>
       </div>
     );
   }
@@ -59,8 +63,8 @@ export default function StatsPage() {
     <main className="pb-24">
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-bold">📊 Statistik</h1>
-        <p className="text-blue-100 text-sm">Ringkasan service motor Anda</p>
+        <h1 className="text-2xl font-bold text-white">📊 Statistik</h1>
+        <p className="text-blue-50 text-sm font-medium">Ringkasan service motor Anda</p>
       </div>
 
       {/* Stats Cards */}
@@ -69,39 +73,54 @@ export default function StatsPage() {
           <div className="bg-white rounded-xl shadow-md p-5">
             <p className="text-3xl mb-1">🏍️</p>
             <p className="text-2xl font-bold text-blue-600">{stats.totalMotor}</p>
-            <p className="text-sm text-gray-600">Total Motor</p>
+            <p className="text-sm text-gray-700 font-semibold mt-1">Total Motor</p>
           </div>
           <div className="bg-white rounded-xl shadow-md p-5">
             <p className="text-3xl mb-1">🔧</p>
             <p className="text-2xl font-bold text-green-600">{stats.totalService}</p>
-            <p className="text-sm text-gray-600">Total Service</p>
+            <p className="text-sm text-gray-700 font-semibold mt-1">Total Service</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-5">
-          <p className="text-sm text-gray-600 mb-1">Total Biaya Service</p>
+          <p className="text-sm text-gray-700 font-semibold mb-2">Total Biaya Service</p>
           <p className="text-3xl font-bold text-orange-600">{formatRupiah(stats.totalBiaya)}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-5">
-          <p className="text-sm text-gray-600 mb-1">Rata-rata Biaya per Service</p>
+          <p className="text-sm text-gray-700 font-semibold mb-2">Rata-rata Biaya per Service</p>
           <p className="text-2xl font-bold text-blue-600">{formatRupiah(stats.rataBiaya)}</p>
         </div>
 
-        {stats.serviceTerakhir && (
+        {stats.serviceTerakhir ? (
           <div className="bg-white rounded-xl shadow-md p-5">
-            <p className="text-sm text-gray-600 mb-2">Service Terakhir</p>
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-bold">{stats.serviceTerakhir.jenisService}</p>
-                <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-700 font-semibold mb-3">Service Terakhir</p>
+            <div className="flex justify-between items-center gap-3">
+              <div className="flex-1">
+                <p className="font-bold text-gray-900 text-lg">{stats.serviceTerakhir.jenisService}</p>
+                <p className="text-sm text-gray-700 font-medium">
                   {formatTanggal(stats.serviceTerakhir.tanggalService)}
                 </p>
+                {stats.serviceTerakhir.bengkel && (
+                  <p className="text-xs text-gray-700 font-medium mt-1">
+                    📍 {stats.serviceTerakhir.bengkel}
+                  </p>
+                )}
               </div>
-              <p className="font-bold text-green-600">
+              <p className="font-bold text-green-600 whitespace-nowrap">
                 {formatRupiah(stats.serviceTerakhir.biaya)}
               </p>
             </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-md p-8 text-center">
+            <p className="text-gray-800 font-semibold">Belum ada data service</p>
+            <Link 
+              href="/services/add"
+              className="inline-block mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold"
+            >
+              + Catat Service Pertama
+            </Link>
           </div>
         )}
       </div>

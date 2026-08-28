@@ -144,20 +144,22 @@ export default function MotorDetail() {
         ) : (
           <div className="space-y-3">
             {services.map(service => (
-              <div key={service.id} className="bg-white rounded-xl shadow-md p-5 relative">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1 pr-8">
+              <div key={service.id} className="bg-white rounded-xl shadow-md p-5">
+                {/* Info utama service */}
+                <div className="flex justify-between items-start gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-gray-900">{service.jenisService}</h3>
                     <p className="text-sm text-gray-700 font-medium">
                       {formatTanggal(service.tanggalService)}
                     </p>
                   </div>
-                  <span className="font-bold text-green-600">
+                  <span className="font-bold text-green-600 whitespace-nowrap">
                     {formatRupiah(service.biaya)}
                   </span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm mb-2">
+                {/* Detail service */}
+                <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                   {service.bengkel && (
                     <div>
                       <span className="text-gray-700 font-semibold">Bengkel:</span>
@@ -172,21 +174,26 @@ export default function MotorDetail() {
                   )}
                 </div>
                 
+                {/* Catatan */}
                 {service.catatan && (
-                  <p className="mt-2 text-sm text-gray-700 font-medium">
+                  <p className="mb-3 text-sm text-gray-700 font-medium">
                     📝 {service.catatan}
                   </p>
                 )}
                 
-                <button
-                  onClick={() => handleDeleteService(service.id, service.jenisService)}
-                  className="absolute top-3 right-3 bg-red-50 text-red-600 p-2 rounded-full hover:bg-red-100 transition"
-                  title="Hapus service"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                {/* Tombol hapus - dipisah dengan border */}
+                <div className="border-t border-gray-200 pt-3 flex justify-end">
+                  <button
+                    onClick={() => handleDeleteService(service.id, service.jenisService)}
+                    className="text-red-600 hover:text-red-700 text-sm font-semibold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
+                    title="Hapus service"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Hapus
+                  </button>
+                </div>
               </div>
             ))}
           </div>
