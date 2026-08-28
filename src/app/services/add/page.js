@@ -6,6 +6,8 @@ import { getMotors, addService } from '@/lib/firestore';
 import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import Link from 'next/link';
+import BottomNav from '@/components/BottomNav';
+import { formatNumber, parseNumber } from '@/utils/formatRupiah';
 
 function AddServiceForm() {
   const searchParams = useSearchParams();
@@ -13,6 +15,7 @@ function AddServiceForm() {
   const router = useRouter();
   
   const [motors, setMotors] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     motorId: motorId || '',
     tanggalService: new Date().toISOString().split('T')[0],
@@ -38,17 +41,42 @@ function AddServiceForm() {
   }
 
   function handleChange(e) {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    // Khusus untuk input biaya, format dengan thousand separator
+    if (name === 'biaya') {
+      const formatted = formatNumber(value);
+      setFormData({
+        ...formData,
+        [name]: formatted
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     
+    if (!formData.motorId || !formData.tanggalService || !formData.jenisService) {
+      toast.error('Mohon lengkapi data yang wajib diisi');
+      return;
+    }
+    
+    setLoading(true);
+    
     try {
-      await addService(formData);
+      // Parse biaya dari formatted ke number
+      const biayaNumber = parseNumber(formData.biaya);
+      
+      await addService({
+        ...formData,
+        biaya: biayaNumber,
+        kilometer: parseInt(formData.kilometer) || 0
+      });
       
       toast.success('Service berhasil dicatat!');
       setTimeout(() => {
@@ -57,128 +85,169 @@ function AddServiceForm() {
     } catch (error) {
       console.error('Error adding service:', error);
       toast.error('Gagal mencatat service');
+      setLoading(false);
     }
   }
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-2xl">
+    <main className="pb-24">
       <Toaster />
-      <Link href="/" className="text-blue-600 hover:underline mb-4 inline-block">
-        ← Kembali
-      </Link>
       
-      <h1 className="text-3xl font-bold mb-6">Catat Service Baru</h1>
-      
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div>
-          <label className="block text-gray-700 mb-2">Pilih Motor *</label>
-          <select
-            name="motorId"
-            value={formData.motorId}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border rounded-lg"
-          >
-            <option value="">Pilih Motor</option>
-            {motors.map(motor => (
-              <option key={motor.id} value={motor.id}>
-                {motor.nama} - {motor.merk} {motor.tipe}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 mb-2">Tanggal Service *</label>
-          <input
-            type="date"
-            name="tanggalService"
-            value={formData.tanggalService}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border rounded-lg"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 mb-2">Jenis Service *</label>
-          <select
-            name="jenisService"
-            value={formData.jenisService}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border rounded-lg"
-          >
-            <option value="">Pilih Jenis Service</option>
-            <option value="Ganti Oli">Ganti Oli</option>
-            <option value="Servis Rutin">Servis Rutin</option>
-            <option value="Servis Besar">Servis Besar</option>
-            <option value="Ganti Ban">Ganti Ban</option>
-            <option value="Ganti Aki">Ganti Aki</option>
-            <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
-            <option value="Perbaikan">Perbaikan</option>
-            <option value="Lainnya">Lainnya</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 mb-2">Bengkel</label>
-          <input
-            type="text"
-            name="bengkel"
-            value={formData.bengkel}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg"
-            placeholder="Nama bengkel"
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
+      {/* Header */}
+      <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-white">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
           <div>
-            <label className="block text-gray-700 mb-2">Biaya (Rp)</label>
-            <input
-              type="number"
-              name="biaya"
-              value={formData.biaya}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-2">Kilometer</label>
-            <input
-              type="number"
-              name="kilometer"
-              value={formData.kilometer}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="0"
-              min="0"
-            />
+            <h1 className="text-2xl font-bold">Catat Service</h1>
+            <p className="text-blue-100 text-sm">Tambahkan riwayat service baru</p>
           </div>
         </div>
-        
-        <div>
-          <label className="block text-gray-700 mb-2">Catatan</label>
-          <textarea
-            name="catatan"
-            value={formData.catatan}
-            onChange={handleChange}
-            rows="3"
-            className="w-full px-3 py-2 border rounded-lg"
-            placeholder="Catatan tambahan..."
-          ></textarea>
-        </div>
-        
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
-        >
-          Simpan Service
-        </button>
-      </form>
+      </div>
+
+      {/* Form */}
+      <div className="px-4 mt-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-5">
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Pilih Motor <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="motorId"
+              value={formData.motorId}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">-- Pilih Motor --</option>
+              {motors.map(motor => (
+                <option key={motor.id} value={motor.id}>
+                  {motor.nama} - {motor.merk} {motor.tipe}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Tanggal Service <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              name="tanggalService"
+              value={formData.tanggalService}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Jenis Service <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="jenisService"
+              value={formData.jenisService}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">-- Pilih Jenis Service --</option>
+              <option value="Ganti Oli">Ganti Oli</option>
+              <option value="Servis Rutin">Servis Rutin</option>
+              <option value="Servis Besar">Servis Besar</option>
+              <option value="Ganti Ban">Ganti Ban</option>
+              <option value="Ganti Aki">Ganti Aki</option>
+              <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
+              <option value="Perbaikan">Perbaikan</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Bengkel
+            </label>
+            <input
+              type="text"
+              name="bengkel"
+              value={formData.bengkel}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Nama bengkel"
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Biaya (Rp)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  Rp
+                </span>
+                <input
+                  type="text"
+                  name="biaya"
+                  value={formData.biaya}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                  inputMode="numeric"
+                />
+              </div>
+              {formData.biaya && (
+                <p className="text-xs text-gray-500 mt-1">
+                  = {formatNumber(formData.biaya)}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Kilometer
+              </label>
+              <input
+                type="number"
+                name="kilometer"
+                value={formData.kilometer}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+                min="0"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Catatan
+            </label>
+            <textarea
+              name="catatan"
+              value={formData.catatan}
+              onChange={handleChange}
+              rows="3"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Catatan tambahan..."
+            ></textarea>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-4 rounded-xl hover:bg-blue-700 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Menyimpan...' : '💾 Simpan Service'}
+          </button>
+        </form>
+      </div>
+
+      <BottomNav />
     </main>
   );
 }
