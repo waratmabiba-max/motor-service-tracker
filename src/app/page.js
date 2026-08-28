@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getMotors } from '@/lib/firestore';
+import { getMotors, getAllServices, deleteMotor } from '@/lib/firestore';
 import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
 import Link from 'next/link';
-import { getServicesByMotor } from '@/lib/firestore';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Home() {
   const [motors, setMotors] = useState([]);
@@ -28,16 +28,10 @@ export default function Home() {
       const motorList = await getMotors();
       setMotors(motorList);
       
-      // Hitung statistik
-      let totalService = 0;
-      let totalBiaya = 0;
+      const allServices = await getAllServices();
       
-      // Ambil service untuk setiap motor
-      for (const motor of motorList) {
-        const services = await getServicesByMotor(motor.id);
-        totalService += services.length;
-        totalBiaya += services.reduce((sum, service) => sum + (service.biaya || 0), 0);
-      }
+      const totalService = allServices.length;
+      const totalBiaya = allServices.reduce((sum, service) => sum + (service.biaya || 0), 0);
       
       setStats({
         totalMotor: motorList.length,
@@ -50,6 +44,21 @@ export default function Home() {
       setError('Gagal memuat data. Pastikan Firebase sudah dikonfigurasi dengan benar.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDeleteMotor(motorId, motorName) {
+    const confirmDelete = window.confirm(`Yakin ingin menghapus "${motorName}"? Semua riwayat service juga akan dihapus.`);
+    
+    if (!confirmDelete) return;
+    
+    try {
+      await deleteMotor(motorId);
+      toast.success(`Motor "${motorName}" berhasil dihapus`);
+      loadMotors();
+    } catch (error) {
+      console.error('Error deleting motor:', error);
+      toast.error('Gagal menghapus motor');
     }
   }
 
@@ -84,13 +93,13 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
+      <Toaster />
+      
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-2">🏍️ Motor Service Tracker</h1>
         <p className="text-gray-600">Catat riwayat service motor Anda dengan mudah</p>
       </div>
 
-      {/* Statistik Dashboard */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <div className="text-3xl mb-2">🏍️</div>
@@ -109,7 +118,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Daftar Motor */}
       {motors.length === 0 ? (
         <div className="text-center bg-white rounded-lg shadow-md p-12">
           <div className="text-6xl mb-4">🏍️</div>
@@ -138,50 +146,59 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {motors.map(motor => (
-              <Link href={`/motors/${motor.id}`} key={motor.id}>
-                <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold">{motor.nama}</h3>
-                      <p className="text-gray-600">
-                        {motor.merk} {motor.tipe} ({motor.tahun})
-                      </p>
-                    </div>
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                      {motor.platNomor || 'No Plat'}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm border-t pt-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Kilometer:</span>
-                      <span className="font-semibold">
-                        {motor.kilometerTerakhir?.toLocaleString() || 0} km
+              <div key={motor.id} className="relative">
+                <Link href={`/motors/${motor.id}`}>
+                  <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-bold">{motor.nama}</h3>
+                        <p className="text-gray-600">
+                          {motor.merk} {motor.tipe} ({motor.tahun})
+                        </p>
+                      </div>
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        {motor.platNomor || 'No Plat'}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Terakhir Update:</span>
-                      <span className="font-semibold">
-                        {motor.updatedAt?.toDate?.() 
-                          ? formatTanggal(motor.updatedAt.toDate()) 
-                          : '-'}
+                    
+                    <div className="space-y-2 text-sm border-t pt-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kilometer:</span>
+                        <span className="font-semibold">
+                          {motor.kilometerTerakhir?.toLocaleString() || 0} km
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Terakhir Update:</span>
+                        <span className="font-semibold">
+                          {motor.updatedAt ? formatTanggal(motor.updatedAt) : '-'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t">
+                      <span className="text-blue-600 text-sm font-semibold">
+                        Lihat Detail →
                       </span>
                     </div>
                   </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <span className="text-blue-600 text-sm font-semibold">
-                      Lihat Detail →
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteMotor(motor.id, motor.nama);
+                  }}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                  title="Hapus motor"
+                >
+                  🗑️
+                </button>
+              </div>
             ))}
           </div>
         </>
       )}
 
-      {/* Quick Actions */}
       {motors.length > 0 && (
         <div className="grid grid-cols-2 gap-4 mt-8">
           <Link 

@@ -5,6 +5,7 @@ import {
   getDoc,
   doc, 
   updateDoc, 
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -18,6 +19,8 @@ function checkDB() {
     throw new Error('Firebase belum diinisialisasi. Pastikan berjalan di client-side.');
   }
 }
+
+// ============ MOTOR OPERATIONS ============
 
 // Get semua motor
 export async function getMotors() {
@@ -34,7 +37,7 @@ export async function getMotors() {
     return motorList;
   } catch (error) {
     console.error('Error in getMotors:', error);
-    return []; // Return empty array instead of throwing
+    return [];
   }
 }
 
@@ -58,6 +61,54 @@ export async function getMotor(motorId) {
     return null;
   }
 }
+
+// Tambah motor baru
+export async function addMotor(motorData) {
+  checkDB();
+  try {
+    const motorsCol = collection(db, 'motors');
+    const docRef = await addDoc(motorsCol, {
+      ...motorData,
+      kilometerTerakhir: 0,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error in addMotor:', error);
+    throw error;
+  }
+}
+
+// Hapus motor dan semua service-nya
+export async function deleteMotor(motorId) {
+  checkDB();
+  try {
+    // 1. Hapus semua service milik motor ini
+    const servicesCol = collection(db, 'services');
+    const q = query(servicesCol, where('motorId', '==', motorId));
+    const serviceSnapshot = await getDocs(q);
+    
+    const deletePromises = [];
+    serviceSnapshot.docs.forEach(doc => {
+      deletePromises.push(deleteDoc(doc.ref));
+    });
+    
+    // Tunggu semua service terhapus
+    await Promise.all(deletePromises);
+    
+    // 2. Hapus motor
+    const motorRef = doc(db, 'motors', motorId);
+    await deleteDoc(motorRef);
+    
+    return true;
+  } catch (error) {
+    console.error('Error in deleteMotor:', error);
+    throw error;
+  }
+}
+
+// ============ SERVICE OPERATIONS ============
 
 // Get riwayat service berdasarkan motor
 export async function getServicesByMotor(motorId) {
@@ -84,7 +135,7 @@ export async function getServicesByMotor(motorId) {
     return serviceList;
   } catch (error) {
     console.error('Error in getServicesByMotor:', error);
-    return []; // Return empty array
+    return [];
   }
 }
 
@@ -107,24 +158,6 @@ export async function getAllServices() {
   } catch (error) {
     console.error('Error in getAllServices:', error);
     return [];
-  }
-}
-
-// Tambah motor baru
-export async function addMotor(motorData) {
-  checkDB();
-  try {
-    const motorsCol = collection(db, 'motors');
-    const docRef = await addDoc(motorsCol, {
-      ...motorData,
-      kilometerTerakhir: 0,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error('Error in addMotor:', error);
-    throw error;
   }
 }
 
@@ -153,6 +186,19 @@ export async function addService(serviceData) {
     return docRef.id;
   } catch (error) {
     console.error('Error in addService:', error);
+    throw error;
+  }
+}
+
+// Hapus single service
+export async function deleteService(serviceId) {
+  checkDB();
+  try {
+    const serviceRef = doc(db, 'services', serviceId);
+    await deleteDoc(serviceRef);
+    return true;
+  } catch (error) {
+    console.error('Error in deleteService:', error);
     throw error;
   }
 }

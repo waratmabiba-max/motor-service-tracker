@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getMotor, getServicesByMotor } from '@/lib/firestore';
+import { getMotor, getServicesByMotor, deleteService } from '@/lib/firestore';
 import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
 import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function MotorDetail() {
   const { id } = useParams();
@@ -36,6 +37,21 @@ export default function MotorDetail() {
     }
   }
 
+  async function handleDeleteService(serviceId, serviceType) {
+    const confirmDelete = window.confirm(`Yakin ingin menghapus service "${serviceType}"?`);
+    
+    if (!confirmDelete) return;
+    
+    try {
+      await deleteService(serviceId);
+      toast.success('Service berhasil dihapus');
+      loadData();
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      toast.error('Gagal menghapus service');
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -58,6 +74,8 @@ export default function MotorDetail() {
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <Toaster />
+      
       <Link href="/" className="text-blue-600 hover:underline mb-4 inline-block">
         ← Kembali
       </Link>
@@ -112,7 +130,15 @@ export default function MotorDetail() {
       ) : (
         <div className="space-y-4">
           {services.map(service => (
-            <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={service.id} className="relative bg-white rounded-lg shadow-md p-6">
+              <button
+                onClick={() => handleDeleteService(service.id, service.jenisService)}
+                className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                title="Hapus service"
+              >
+                🗑️
+              </button>
+              
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-lg font-semibold">{service.jenisService}</h3>
@@ -120,7 +146,7 @@ export default function MotorDetail() {
                     {formatTanggal(service.tanggalService)}
                   </p>
                 </div>
-                <span className="font-semibold text-green-600">
+                <span className="font-semibold text-green-600 mr-10">
                   {formatRupiah(service.biaya)}
                 </span>
               </div>
