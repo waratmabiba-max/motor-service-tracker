@@ -63,9 +63,9 @@ export default function BottomNav() {
                   <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition">
                     {item.icon}
                   </div>
-                  <span className="text-xs mt-1 block text-center text-gray-600">
-                    {item.label}
-                  </span>
+                  <span className="text-xs mt-1 block text-center text-gray-700 font-semibold">
+  {item.label}
+</span>
                 </Link>
               );
             }
@@ -79,7 +79,7 @@ export default function BottomNav() {
                 }`}
               >
                 {item.icon}
-                <span className="text-xs mt-1">{item.label}</span>
+                <span className="text-xs mt-1 font-semibold">{item.label}</span>
               </Link>
             );
           })}

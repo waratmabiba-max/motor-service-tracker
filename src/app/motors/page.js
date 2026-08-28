@@ -41,7 +41,10 @@ export default function MotorsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-900 font-semibold">Memuat data...</p>
+        </div>
       </div>
     );
   }
@@ -52,8 +55,8 @@ export default function MotorsPage() {
       
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-bold">🛵 Motor Saya</h1>
-        <p className="text-blue-100 text-sm">Kelola data motor Anda</p>
+        <h1 className="text-2xl font-bold text-white">🛵 Motor Saya</h1>
+        <p className="text-blue-50 text-sm font-medium">Kelola data motor Anda</p>
       </div>
 
       {/* Motor List */}
@@ -61,8 +64,8 @@ export default function MotorsPage() {
         {motors.length === 0 ? (
           <div className="text-center bg-white rounded-xl shadow-md p-8">
             <div className="text-5xl mb-3">🏍️</div>
-            <p className="text-gray-600 mb-4">Belum ada motor</p>
-            <Link href="/motors/add" className="bg-blue-600 text-white px-6 py-3 rounded-lg">
+            <p className="text-gray-800 font-semibold mb-4">Belum ada motor</p>
+            <Link href="/motors/add" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold">
               + Tambah Motor
             </Link>
           </div>
@@ -76,16 +79,16 @@ export default function MotorsPage() {
                       🏍️
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold">{motor.nama}</h3>
-                      <p className="text-sm text-gray-600">{motor.merk} {motor.tipe}</p>
-                      <p className="text-xs text-gray-500">{motor.platNomor}</p>
+                      <h3 className="font-bold text-gray-900">{motor.nama}</h3>
+                      <p className="text-sm text-gray-700 font-medium">{motor.merk} {motor.tipe}</p>
+                      <p className="text-xs text-gray-700 font-semibold">{motor.platNomor}</p>
                     </div>
-                    <span className="text-gray-400">›</span>
+                    <span className="text-gray-500 font-bold">›</span>
                   </div>
                 </Link>
                 <button
                   onClick={() => handleDeleteMotor(motor.id, motor.nama)}
-                  className="absolute bottom-2 right-2 text-red-500 p-2"
+                  className="absolute bottom-2 right-2 text-red-600 p-2 font-bold"
                 >
                   🗑️
                 </button>

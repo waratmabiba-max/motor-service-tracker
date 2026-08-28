@@ -59,7 +59,7 @@ export default function Home() {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat data...</p>
+          <p className="text-gray-900 font-semibold">Memuat data...</p>
         </div>
       </div>
     );
@@ -71,8 +71,8 @@ export default function Home() {
       
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-bold mb-1">🏍️ Motor Service Tracker</h1>
-        <p className="text-blue-100 text-sm">Kelola service motor Anda</p>
+        <h1 className="text-2xl font-bold mb-1 text-white">🏍️ Motor Service Tracker</h1>
+        <p className="text-blue-50 text-sm font-medium">Kelola service motor Anda</p>
       </div>
 
       {/* Stats */}
@@ -80,15 +80,15 @@ export default function Home() {
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-xl shadow-md p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{stats.totalMotor}</p>
-            <p className="text-xs text-gray-600">Motor</p>
+            <p className="text-xs text-gray-700 font-semibold">Motor</p>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{stats.totalService}</p>
-            <p className="text-xs text-gray-600">Service</p>
+            <p className="text-xs text-gray-700 font-semibold">Service</p>
           </div>
           <div className="bg-white rounded-xl shadow-md p-4 text-center">
             <p className="text-sm font-bold text-orange-600">{formatRupiah(stats.totalBiaya)}</p>
-            <p className="text-xs text-gray-600">Total Biaya</p>
+            <p className="text-xs text-gray-700 font-semibold">Total Biaya</p>
           </div>
         </div>
       </div>
@@ -96,8 +96,8 @@ export default function Home() {
       {/* Motor List */}
       <div className="px-4 mt-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Motor Anda</h2>
-          <Link href="/motors/add" className="text-blue-600 text-sm font-semibold">
+          <h2 className="text-lg font-bold text-gray-900">Motor Anda</h2>
+          <Link href="/motors/add" className="text-blue-600 text-sm font-bold">
             + Tambah
           </Link>
         </div>
@@ -105,10 +105,10 @@ export default function Home() {
         {motors.length === 0 ? (
           <div className="text-center bg-white rounded-xl shadow-md p-8">
             <div className="text-5xl mb-3">🏍️</div>
-            <p className="text-gray-600 mb-4">Belum ada motor terdaftar</p>
+            <p className="text-gray-800 font-semibold mb-4">Belum ada motor terdaftar</p>
             <Link 
               href="/motors/add"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg inline-block"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg inline-block font-semibold"
             >
               + Tambah Motor Pertama
             </Link>
@@ -121,28 +121,28 @@ export default function Home() {
                   <div className="p-5 active:scale-95 transition">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg">{motor.nama}</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className="font-bold text-lg text-gray-900">{motor.nama}</h3>
+                        <p className="text-sm text-gray-700 font-medium">
                           {motor.merk} {motor.tipe}
                         </p>
                       </div>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                         {motor.platNomor || 'No Plat'}
                       </span>
                     </div>
                     
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>📅 {motor.tahun}</span>
-                      <span>🛣️ {motor.kilometerTerakhir?.toLocaleString() || 0} km</span>
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-gray-700">📅 {motor.tahun}</span>
+                      <span className="text-gray-700">🛣️ {motor.kilometerTerakhir?.toLocaleString() || 0} km</span>
                     </div>
                   </div>
                 </Link>
                 
                 {/* Tombol hapus */}
-                <div className="border-t border-gray-100 flex justify-end px-4 py-2">
+                <div className="border-t border-gray-200 flex justify-end px-4 py-2">
                   <button
                     onClick={() => handleDeleteMotor(motor.id, motor.nama)}
-                    className="text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-1"
+                    className="text-red-600 hover:text-red-700 text-sm font-bold flex items-center gap-1"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
