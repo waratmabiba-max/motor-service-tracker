@@ -1,69 +1,203 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { getMotors } from '@/lib/firestore';
+import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
+import Link from 'next/link';
+import { getServicesByMotor } from '@/lib/firestore';
 
 export default function Home() {
+  const [motors, setMotors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    totalMotor: 0,
+    totalService: 0,
+    totalBiaya: 0
+  });
+
+  useEffect(() => {
+    loadMotors();
+  }, []);
+
+  async function loadMotors() {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const motorList = await getMotors();
+      setMotors(motorList);
+      
+      // Hitung statistik
+      let totalService = 0;
+      let totalBiaya = 0;
+      
+      // Ambil service untuk setiap motor
+      for (const motor of motorList) {
+        const services = await getServicesByMotor(motor.id);
+        totalService += services.length;
+        totalBiaya += services.reduce((sum, service) => sum + (service.biaya || 0), 0);
+      }
+      
+      setStats({
+        totalMotor: motorList.length,
+        totalService: totalService,
+        totalBiaya: totalBiaya
+      });
+      
+    } catch (error) {
+      console.error('Error loading motors:', error);
+      setError('Gagal memuat data. Pastikan Firebase sudah dikonfigurasi dengan benar.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold mb-2">Terjadi Kesalahan</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={loadMotors}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-2">🏍️ Motor Service Tracker</h1>
+        <p className="text-gray-600">Catat riwayat service motor Anda dengan mudah</p>
+      </div>
+
+      {/* Statistik Dashboard */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="text-3xl mb-2">🏍️</div>
+          <p className="text-2xl font-bold text-blue-600">{stats.totalMotor}</p>
+          <p className="text-gray-600">Motor</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="text-3xl mb-2">🔧</div>
+          <p className="text-2xl font-bold text-green-600">{stats.totalService}</p>
+          <p className="text-gray-600">Service</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-6 text-center">
+          <div className="text-3xl mb-2">💰</div>
+          <p className="text-2xl font-bold text-orange-600">{formatRupiah(stats.totalBiaya)}</p>
+          <p className="text-gray-600">Total Biaya</p>
+        </div>
+      </div>
+
+      {/* Daftar Motor */}
+      {motors.length === 0 ? (
+        <div className="text-center bg-white rounded-lg shadow-md p-12">
+          <div className="text-6xl mb-4">🏍️</div>
+          <h2 className="text-2xl font-bold mb-2">Belum Ada Motor Terdaftar</h2>
+          <p className="text-gray-600 mb-6">
+            Mulai dengan menambahkan motor pertama Anda
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link 
+            href="/motors/add"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-block"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            + Tambah Motor Pertama
+          </Link>
         </div>
-      </main>
-    </div>
+      ) : (
+        <>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Motor Anda</h2>
+            <Link 
+              href="/motors/add"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              + Tambah Motor
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {motors.map(motor => (
+              <Link href={`/motors/${motor.id}`} key={motor.id}>
+                <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold">{motor.nama}</h3>
+                      <p className="text-gray-600">
+                        {motor.merk} {motor.tipe} ({motor.tahun})
+                      </p>
+                    </div>
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                      {motor.platNomor || 'No Plat'}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm border-t pt-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Kilometer:</span>
+                      <span className="font-semibold">
+                        {motor.kilometerTerakhir?.toLocaleString() || 0} km
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Terakhir Update:</span>
+                      <span className="font-semibold">
+                        {motor.updatedAt?.toDate?.() 
+                          ? formatTanggal(motor.updatedAt.toDate()) 
+                          : '-'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t">
+                    <span className="text-blue-600 text-sm font-semibold">
+                      Lihat Detail →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Quick Actions */}
+      {motors.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 mt-8">
+          <Link 
+            href="/services/add"
+            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition text-center"
+          >
+            🔧 Catat Service
+          </Link>
+          <Link 
+            href="/motors/add"
+            className="bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition text-center"
+          >
+            🏍️ Tambah Motor
+          </Link>
+        </div>
+      )}
+    </main>
   );
 }

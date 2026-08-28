@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  // Cegah prerender halaman yang pakai Firebase
+  staticPageGenerationTimeout: 120,
 };
 
 export default nextConfig;
