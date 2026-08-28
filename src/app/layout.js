@@ -13,12 +13,17 @@ export const metadata = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+    themeColor: '#3B82F6',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
+    <html lang="id" style={{ colorScheme: 'light' }}>
+      <head>
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#3B82F6" />
+      </head>
       <body className={`${inter.className} bg-gray-50`}>
         <div className="max-w-md mx-auto min-h-screen bg-gray-50 shadow-xl relative">
           {children}

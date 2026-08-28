@@ -18,10 +18,9 @@ export default function AddMotor() {
   });
   const [loading, setLoading] = useState(false);
 
-    function handleChange(e) {
+  function handleChange(e) {
     const { name, value } = e.target;
     
-    // Auto kapital untuk plat nomor
     if (name === 'platNomor') {
       setFormData({
         ...formData,
@@ -66,7 +65,6 @@ export default function AddMotor() {
     <main className="pb-24">
       <Toaster />
       
-      {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
         <div className="flex items-center gap-4">
           <Link href="/motors" className="text-white">
@@ -81,11 +79,10 @@ export default function AddMotor() {
         </div>
       </div>
 
-      {/* Form */}
       <div className="px-4 mt-6">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-5">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Nama Motor <span className="text-red-500">*</span>
             </label>
             <input
@@ -94,13 +91,13 @@ export default function AddMotor() {
               value={formData.nama}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
               placeholder="Contoh: Motor Harian"
             />
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Merk <span className="text-red-500">*</span>
             </label>
             <input
@@ -109,13 +106,13 @@ export default function AddMotor() {
               value={formData.merk}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
               placeholder="Contoh: Honda"
             />
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Tipe <span className="text-red-500">*</span>
             </label>
             <input
@@ -124,14 +121,14 @@ export default function AddMotor() {
               value={formData.tipe}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
               placeholder="Contoh: Vario 150"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">
+              <label className="block text-gray-800 font-semibold mb-2">
                 Tahun
               </label>
               <input
@@ -139,21 +136,21 @@ export default function AddMotor() {
                 name="tahun"
                 value={formData.tahun}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 min="1990"
                 max="2026"
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">
+              <label className="block text-gray-800 font-semibold mb-2">
                 Plat Nomor
               </label>
-             <input
+              <input
                 type="text"
                 name="platNomor"
                 value={formData.platNomor}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white uppercase"
                 placeholder="B 1234 XYZ"
               />
             </div>

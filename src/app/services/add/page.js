@@ -43,7 +43,6 @@ function AddServiceForm() {
   function handleChange(e) {
     const { name, value } = e.target;
     
-    // Khusus untuk input biaya, format dengan thousand separator
     if (name === 'biaya') {
       const formatted = formatNumber(value);
       setFormData({
@@ -69,7 +68,6 @@ function AddServiceForm() {
     setLoading(true);
     
     try {
-      // Parse biaya dari formatted ke number
       const biayaNumber = parseNumber(formData.biaya);
       
       await addService({
@@ -93,7 +91,6 @@ function AddServiceForm() {
     <main className="pb-24">
       <Toaster />
       
-      {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
         <div className="flex items-center gap-4">
           <Link href="/" className="text-white">
@@ -108,11 +105,10 @@ function AddServiceForm() {
         </div>
       </div>
 
-      {/* Form */}
       <div className="px-4 mt-6">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-5">
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Pilih Motor <span className="text-red-500">*</span>
             </label>
             <select
@@ -120,7 +116,7 @@ function AddServiceForm() {
               value={formData.motorId}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             >
               <option value="">-- Pilih Motor --</option>
               {motors.map(motor => (
@@ -132,7 +128,7 @@ function AddServiceForm() {
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Tanggal Service <span className="text-red-500">*</span>
             </label>
             <input
@@ -141,12 +137,12 @@ function AddServiceForm() {
               value={formData.tanggalService}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             />
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Jenis Service <span className="text-red-500">*</span>
             </label>
             <select
@@ -154,7 +150,7 @@ function AddServiceForm() {
               value={formData.jenisService}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             >
               <option value="">-- Pilih Jenis Service --</option>
               <option value="Ganti Oli">Ganti Oli</option>
@@ -169,7 +165,7 @@ function AddServiceForm() {
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Bengkel
             </label>
             <input
@@ -177,18 +173,18 @@ function AddServiceForm() {
               name="bengkel"
               value={formData.bengkel}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
               placeholder="Nama bengkel"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">
+              <label className="block text-gray-800 font-semibold mb-2">
                 Biaya (Rp)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">
                   Rp
                 </span>
                 <input
@@ -196,19 +192,14 @@ function AddServiceForm() {
                   name="biaya"
                   value={formData.biaya}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
                   placeholder="0"
                   inputMode="numeric"
                 />
               </div>
-              {formData.biaya && (
-                <p className="text-xs text-gray-500 mt-1">
-                  = {formatNumber(formData.biaya)}
-                </p>
-              )}
             </div>
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">
+              <label className="block text-gray-800 font-semibold mb-2">
                 Kilometer
               </label>
               <input
@@ -216,7 +207,7 @@ function AddServiceForm() {
                 name="kilometer"
                 value={formData.kilometer}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 placeholder="0"
                 min="0"
               />
@@ -224,7 +215,7 @@ function AddServiceForm() {
           </div>
           
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">
+            <label className="block text-gray-800 font-semibold mb-2">
               Catatan
             </label>
             <textarea
@@ -232,7 +223,7 @@ function AddServiceForm() {
               value={formData.catatan}
               onChange={handleChange}
               rows="3"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white"
               placeholder="Catatan tambahan..."
             ></textarea>
           </div>
