@@ -80,7 +80,21 @@ export async function addMotor(motorData) {
     throw error;
   }
 }
-
+// Update kilometer motor
+export async function updateKilometer(motorId, kilometerBaru) {
+  checkDB();
+  try {
+    const motorRef = doc(db, 'motors', motorId);
+    await updateDoc(motorRef, {
+      kilometerTerakhir: parseInt(kilometerBaru),
+      updatedAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error in updateKilometer:', error);
+    throw error;
+  }
+}
 // Hapus motor dan semua service-nya
 export async function deleteMotor(motorId) {
   checkDB();
