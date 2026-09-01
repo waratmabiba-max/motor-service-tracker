@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getMotors, getAllServices, deleteMotor } from '@/lib/firestore';
-import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
+import { formatRupiah } from '@/utils/formatRupiah';
+import { hitungStatusService } from '@/utils/serviceReminder';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import BottomNav from '@/components/BottomNav';
@@ -24,9 +25,22 @@ export default function Home() {
     try {
       setLoading(true);
       const motorList = await getMotors();
-      setMotors(motorList);
-      
       const allServices = await getAllServices();
+      
+      // Hitung status service untuk setiap motor
+      const motorsWithStatus = motorList.map(motor => {
+        const motorServices = allServices.filter(s => s.motorId === motor.id);
+        const latestService = motorServices[0]; // Karena sudah diurutkan desc
+        const status = hitungStatusService(motor, latestService);
+        
+        return {
+          ...motor,
+          statusReminder: status,
+          latestService: latestService
+        };
+      });
+      
+      setMotors(motorsWithStatus);
       
       setStats({
         totalMotor: motorList.length,
@@ -131,9 +145,35 @@ export default function Home() {
                       </span>
                     </div>
                     
+                    {/* Status Service Reminder */}
+                    {motor.statusReminder && (
+                      <div className={`mb-3 p-3 rounded-lg ${
+                        motor.statusReminder.warna === 'green' 
+                          ? 'bg-green-50 border border-green-200' 
+                          : motor.statusReminder.warna === 'yellow'
+                          ? 'bg-yellow-50 border border-yellow-200'
+                          : 'bg-red-50 border border-red-200'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-900">
+                            {motor.statusReminder.icon} {motor.statusReminder.pesan}
+                          </span>
+                          <span className="text-xs font-semibold text-gray-700">
+                            {motor.statusReminder.persentase}%
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-700 font-medium mt-1">
+                          {motor.statusReminder.sisaKm > 0 && `Sisa ${motor.statusReminder.sisaKm.toLocaleString()} km`}
+                          {motor.statusReminder.sisaKm > 0 && motor.statusReminder.sisaBulan > 0 && ' • '}
+                          {motor.statusReminder.sisaBulan > 0 && `Sisa ${motor.statusReminder.sisaBulan} bulan`}
+                          {(motor.statusReminder.sisaKm <= 0 && motor.statusReminder.sisaBulan <= 0) && 'Sudah melewati jadwal service'}
+                        </p>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between text-sm font-medium">
-                      <span className="text-gray-700">📅 {motor.tahun}</span>
                       <span className="text-gray-700">🛣️ {motor.kilometerTerakhir?.toLocaleString() || 0} km</span>
+                      <span className="text-gray-700">🔧 {motor.latestService ? motor.latestService.jenisService : 'Belum ada service'}</span>
                     </div>
                   </div>
                 </Link>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getMotors, addService } from '@/lib/firestore';
 import { useRouter } from 'next/navigation';
@@ -13,9 +13,12 @@ function AddServiceForm() {
   const searchParams = useSearchParams();
   const motorId = searchParams.get('motorId');
   const router = useRouter();
+  const fileInputRef = useRef(null);
   
   const [motors, setMotors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
   const [formData, setFormData] = useState({
     motorId: motorId || '',
     tanggalService: new Date().toISOString().split('T')[0],
@@ -57,6 +60,41 @@ function AddServiceForm() {
     }
   }
 
+  function handleFotoChange(e) {
+    const file = e.target.files[0];
+    
+    if (!file) return;
+    
+    // Validasi tipe file
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar');
+      return;
+    }
+    
+    // Validasi ukuran (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 5MB');
+      return;
+    }
+    
+    setFotoFile(file);
+    
+    // Buat preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFotoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function hapusFoto() {
+    setFotoFile(null);
+    setFotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     
@@ -70,11 +108,14 @@ function AddServiceForm() {
     try {
       const biayaNumber = parseNumber(formData.biaya);
       
-      await addService({
-        ...formData,
-        biaya: biayaNumber,
-        kilometer: parseInt(formData.kilometer) || 0
-      });
+      await addService(
+        {
+          ...formData,
+          biaya: biayaNumber,
+          kilometer: parseInt(formData.kilometer) || 0
+        },
+        fotoFile
+      );
       
       toast.success('Service berhasil dicatat!');
       setTimeout(() => {
@@ -100,7 +141,7 @@ function AddServiceForm() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold">Catat Service</h1>
-            <p className="text-blue-100 text-sm">Tambahkan riwayat service baru</p>
+            <p className="text-blue-50 text-sm font-medium">Tambahkan riwayat service baru</p>
           </div>
         </div>
       </div>
@@ -212,6 +253,49 @@ function AddServiceForm() {
                 min="0"
               />
             </div>
+          </div>
+          
+          {/* Upload Foto Struk */}
+          <div>
+            <label className="block text-gray-800 font-semibold mb-2">
+              Foto Struk/Nota
+            </label>
+            
+            {fotoPreview ? (
+              <div className="relative">
+                <img 
+                  src={fotoPreview} 
+                  alt="Preview struk" 
+                  className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={hapusFoto}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition"
+              >
+                <div className="text-4xl mb-2">📄</div>
+                <p className="text-gray-700 font-semibold">Klik untuk upload foto struk</p>
+                <p className="text-xs text-gray-700 mt-1">JPG, PNG, atau JPEG (max 5MB)</p>
+              </div>
+            )}
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFotoChange}
+              className="hidden"
+            />
           </div>
           
           <div>

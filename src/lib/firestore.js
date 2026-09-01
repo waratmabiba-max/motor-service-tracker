@@ -12,6 +12,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { uploadStrukFoto } from './cloudinary';
 
 // Helper untuk cek db
 function checkDB() {
@@ -94,7 +95,6 @@ export async function deleteMotor(motorId) {
       deletePromises.push(deleteDoc(doc.ref));
     });
     
-    // Tunggu semua service terhapus
     await Promise.all(deletePromises);
     
     // 2. Hapus motor
@@ -161,10 +161,18 @@ export async function getAllServices() {
   }
 }
 
-// Tambah service baru
-export async function addService(serviceData) {
+// Tambah service baru dengan foto struk
+export async function addService(serviceData, fotoFile = null) {
   checkDB();
   try {
+    let fotoStruk = null;
+    
+    // Upload foto ke Cloudinary jika ada
+    if (fotoFile) {
+      const uploadResult = await uploadStrukFoto(fotoFile);
+      fotoStruk = uploadResult.url;
+    }
+    
     const servicesCol = collection(db, 'services');
     
     const docRef = await addDoc(servicesCol, {
@@ -172,6 +180,7 @@ export async function addService(serviceData) {
       biaya: parseFloat(serviceData.biaya) || 0,
       kilometer: parseInt(serviceData.kilometer) || 0,
       tanggalService: new Date(serviceData.tanggalService),
+      fotoStruk: fotoStruk,
       createdAt: serverTimestamp()
     });
     

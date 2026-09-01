@@ -14,7 +14,9 @@ export default function AddMotor() {
     merk: '',
     tipe: '',
     tahun: new Date().getFullYear(),
-    platNomor: ''
+    platNomor: '',
+    serviceIntervalKm: 2500,
+    serviceIntervalBulan: 3
   });
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +49,9 @@ export default function AddMotor() {
     try {
       await addMotor({
         ...formData,
-        tahun: parseInt(formData.tahun)
+        tahun: parseInt(formData.tahun),
+        serviceIntervalKm: parseInt(formData.serviceIntervalKm) || 2500,
+        serviceIntervalBulan: parseInt(formData.serviceIntervalBulan) || 3
       });
       
       toast.success('Motor berhasil ditambahkan!');
@@ -74,7 +78,7 @@ export default function AddMotor() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold">Tambah Motor</h1>
-            <p className="text-blue-100 text-sm">Daftarkan motor baru Anda</p>
+            <p className="text-blue-50 text-sm font-medium">Daftarkan motor baru Anda</p>
           </div>
         </div>
       </div>
@@ -153,6 +157,46 @@ export default function AddMotor() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-400 bg-white uppercase"
                 placeholder="B 1234 XYZ"
               />
+            </div>
+          </div>
+
+          {/* Interval Service */}
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="font-bold text-gray-900 mb-3">⏰ Pengingat Service</h3>
+            <p className="text-xs text-gray-700 mb-4">Atur interval service untuk pengingat otomatis</p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-800 font-semibold mb-2 text-sm">
+                  Interval KM
+                </label>
+                <input
+                  type="number"
+                  name="serviceIntervalKm"
+                  value={formData.serviceIntervalKm}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  min="500"
+                  max="10000"
+                  step="500"
+                />
+                <p className="text-xs text-gray-700 mt-1">Contoh: 2500 km</p>
+              </div>
+              <div>
+                <label className="block text-gray-800 font-semibold mb-2 text-sm">
+                  Interval Bulan
+                </label>
+                <input
+                  type="number"
+                  name="serviceIntervalBulan"
+                  value={formData.serviceIntervalBulan}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  min="1"
+                  max="12"
+                />
+                <p className="text-xs text-gray-700 mt-1">Contoh: 3 bulan</p>
+              </div>
             </div>
           </div>
           

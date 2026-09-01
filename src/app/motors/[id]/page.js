@@ -14,6 +14,7 @@ export default function MotorDetail() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalBiaya, setTotalBiaya] = useState(0);
+  const [selectedFoto, setSelectedFoto] = useState(null);
 
   useEffect(() => {
     if (id) {
@@ -79,6 +80,28 @@ export default function MotorDetail() {
   return (
     <main className="pb-24">
       <Toaster />
+      
+      {/* Modal untuk lihat foto */}
+      {selectedFoto && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedFoto(null)}
+        >
+          <div className="max-w-lg w-full">
+            <img 
+              src={selectedFoto} 
+              alt="Foto struk" 
+              className="w-full rounded-lg"
+            />
+            <button
+              onClick={() => setSelectedFoto(null)}
+              className="mt-4 w-full bg-white text-gray-900 py-3 rounded-lg font-bold"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-8 rounded-b-3xl">
@@ -174,6 +197,21 @@ export default function MotorDetail() {
                   )}
                 </div>
                 
+                {/* Foto struk */}
+                {service.fotoStruk && (
+                  <div className="mb-3">
+                    <img 
+                      src={service.fotoStruk} 
+                      alt="Struk service"
+                      className="w-full h-32 object-cover rounded-lg cursor-pointer border border-gray-200"
+                      onClick={() => setSelectedFoto(service.fotoStruk)}
+                    />
+                    <p className="text-xs text-gray-700 font-medium mt-1 text-center">
+                      👆 Klik untuk perbesar
+                    </p>
+                  </div>
+                )}
+                
                 {/* Catatan */}
                 {service.catatan && (
                   <p className="mb-3 text-sm text-gray-700 font-medium">
@@ -181,7 +219,7 @@ export default function MotorDetail() {
                   </p>
                 )}
                 
-                {/* Tombol hapus - dipisah dengan border */}
+                {/* Tombol hapus */}
                 <div className="border-t border-gray-200 pt-3 flex justify-end">
                   <button
                     onClick={() => handleDeleteService(service.id, service.jenisService)}
