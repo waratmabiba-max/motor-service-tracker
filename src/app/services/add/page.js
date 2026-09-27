@@ -9,6 +9,20 @@ import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
 import { formatNumber, parseNumber } from '@/utils/formatRupiah';
 
+const PILIHAN_SERVICE = [
+  'Ganti Oli',
+  'Servis Rutin',
+  'Servis Besar',
+  'Ganti Ban',
+  'Ganti Aki',
+  'Ganti Kampas Rem',
+  'Ganti Busi',
+  'Ganti Filter Udara',
+  'Ganti V-belt/CVT',
+  'Perbaikan',
+  'Lainnya'
+];
+
 function AddServiceForm() {
   const searchParams = useSearchParams();
   const motorId = searchParams.get('motorId');
@@ -19,10 +33,10 @@ function AddServiceForm() {
   const [loading, setLoading] = useState(false);
   const [fotoFile, setFotoFile] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
+  const [jenisServiceDipilih, setJenisServiceDipilih] = useState([]);
   const [formData, setFormData] = useState({
     motorId: motorId || '',
     tanggalService: new Date().toISOString().split('T')[0],
-    jenisService: '',
     bengkel: '',
     biaya: '',
     kilometer: '',
@@ -60,18 +74,26 @@ function AddServiceForm() {
     }
   }
 
+  function toggleJenisService(jenis) {
+    setJenisServiceDipilih(prev => {
+      if (prev.includes(jenis)) {
+        return prev.filter(j => j !== jenis);
+      } else {
+        return [...prev, jenis];
+      }
+    });
+  }
+
   function handleFotoChange(e) {
     const file = e.target.files[0];
     
     if (!file) return;
     
-    // Validasi tipe file
     if (!file.type.startsWith('image/')) {
       toast.error('File harus berupa gambar');
       return;
     }
     
-    // Validasi ukuran (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Ukuran file maksimal 5MB');
       return;
@@ -79,7 +101,6 @@ function AddServiceForm() {
     
     setFotoFile(file);
     
-    // Buat preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setFotoPreview(reader.result);
@@ -98,8 +119,13 @@ function AddServiceForm() {
   async function handleSubmit(e) {
     e.preventDefault();
     
-    if (!formData.motorId || !formData.tanggalService || !formData.jenisService) {
+    if (!formData.motorId || !formData.tanggalService) {
       toast.error('Mohon lengkapi data yang wajib diisi');
+      return;
+    }
+    
+    if (jenisServiceDipilih.length === 0) {
+      toast.error('Pilih minimal satu jenis service');
       return;
     }
     
@@ -111,6 +137,7 @@ function AddServiceForm() {
       await addService(
         {
           ...formData,
+          jenisService: jenisServiceDipilih,  // Simpan sebagai array
           biaya: biayaNumber,
           kilometer: parseInt(formData.kilometer) || 0
         },
@@ -182,27 +209,65 @@ function AddServiceForm() {
             />
           </div>
           
+          {/* Multi-select Jenis Service */}
           <div>
             <label className="block text-gray-800 font-semibold mb-2">
               Jenis Service <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-600 font-normal ml-2">
+                (bisa pilih lebih dari satu)
+              </span>
             </label>
-            <select
-              name="jenisService"
-              value={formData.jenisService}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-            >
-              <option value="">-- Pilih Jenis Service --</option>
-              <option value="Ganti Oli">Ganti Oli</option>
-              <option value="Servis Rutin">Servis Rutin</option>
-              <option value="Servis Besar">Servis Besar</option>
-              <option value="Ganti Ban">Ganti Ban</option>
-              <option value="Ganti Aki">Ganti Aki</option>
-              <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
-              <option value="Perbaikan">Perbaikan</option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
+            
+            {jenisServiceDipilih.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {jenisServiceDipilih.map(jenis => (
+                  <span 
+                    key={jenis}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+                  >
+                    {jenis}
+                    <button
+                      type="button"
+                      onClick={() => toggleJenisService(jenis)}
+                      className="text-blue-800 hover:text-blue-900"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-2">
+              {PILIHAN_SERVICE.map(jenis => {
+                const isSelected = jenisServiceDipilih.includes(jenis);
+                return (
+                  <button
+                    key={jenis}
+                    type="button"
+                    onClick={() => toggleJenisService(jenis)}
+                    className={`px-3 py-3 rounded-lg border-2 text-sm font-semibold transition text-left ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-800 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                        isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-400'
+                      }`}>
+                        {isSelected && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-xs leading-tight">{jenis}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
           
           <div>
@@ -255,7 +320,6 @@ function AddServiceForm() {
             </div>
           </div>
           
-          {/* Upload Foto Struk */}
           <div>
             <label className="block text-gray-800 font-semibold mb-2">
               Foto Struk/Nota

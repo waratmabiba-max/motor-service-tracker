@@ -7,6 +7,7 @@ import { hitungStatusService } from '@/utils/serviceReminder';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import BottomNav from '@/components/BottomNav';
+import { formatJenisService } from '@/utils/formatJenisService';
 
 export default function Home() {
   const [motors, setMotors] = useState([]);
@@ -252,7 +253,7 @@ export default function Home() {
                     
                     <div className="flex justify-between text-sm font-medium mb-3">
                       <span className="text-gray-700">🛣️ {motor.kilometerTerakhir?.toLocaleString() || 0} km</span>
-                      <span className="text-gray-700">🔧 {motor.latestService ? motor.latestService.jenisService : 'Belum ada service'}</span>
+                      <span className="text-gray-700">🔧 {motor.latestService ? formatJenisService(motor.latestService.jenisService) : 'Belum ada service'}</span>
                     </div>
                   </div>
                 </Link>

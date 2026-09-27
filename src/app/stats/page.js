@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getMotors, getAllServices } from '@/lib/firestore';
 import { formatRupiah, formatTanggal } from '@/utils/formatRupiah';
+import { formatJenisService } from '@/utils/formatJenisService';
 import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 
@@ -97,7 +98,7 @@ export default function StatsPage() {
             <p className="text-sm text-gray-700 font-semibold mb-3">Service Terakhir</p>
             <div className="flex justify-between items-center gap-3">
               <div className="flex-1">
-                <p className="font-bold text-gray-900 text-lg">{stats.serviceTerakhir.jenisService}</p>
+                <p className="font-bold text-gray-900 text-lg">{formatJenisService(stats.serviceTerakhir.jenisService)}</p>
                 <p className="text-sm text-gray-700 font-medium">
                   {formatTanggal(stats.serviceTerakhir.tanggalService)}
                 </p>
