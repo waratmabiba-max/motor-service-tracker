@@ -14,35 +14,31 @@ import {
 import { db } from './firebase';
 import { uploadStrukFoto } from './cloudinary';
 
-// Helper untuk cek db
 function checkDB() {
   if (!db) {
-    throw new Error('Firebase belum diinisialisasi. Pastikan berjalan di client-side.');
+    throw new Error('Firebase belum diinisialisasi.');
   }
 }
 
 // ============ MOTOR OPERATIONS ============
 
-// Get semua motor
 export async function getMotors() {
   checkDB();
   try {
     const motorsCol = collection(db, 'motors');
     const motorSnapshot = await getDocs(motorsCol);
-    const motorList = motorSnapshot.docs.map(doc => ({
+    return motorSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
       updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt
     }));
-    return motorList;
   } catch (error) {
     console.error('Error in getMotors:', error);
     return [];
   }
 }
 
-// Get motor by ID
 export async function getMotor(motorId) {
   checkDB();
   try {
@@ -63,7 +59,6 @@ export async function getMotor(motorId) {
   }
 }
 
-// Tambah motor baru
 export async function addMotor(motorData) {
   checkDB();
   try {
@@ -74,13 +69,21 @@ export async function addMotor(motorData) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
+    
+    // Init komponen default, tapi jangan gagalkan addMotor jika error
+    try {
+      await initKomponenDefault(docRef.id);
+    } catch (komponenError) {
+      console.error('Motor berhasil dibuat, tapi gagal init komponen:', komponenError);
+    }
+    
     return docRef.id;
   } catch (error) {
     console.error('Error in addMotor:', error);
     throw error;
   }
 }
-// Update kilometer motor
+
 export async function updateKilometer(motorId, kilometerBaru) {
   checkDB();
   try {
@@ -95,26 +98,23 @@ export async function updateKilometer(motorId, kilometerBaru) {
     throw error;
   }
 }
-// Hapus motor dan semua service-nya
+
 export async function deleteMotor(motorId) {
   checkDB();
   try {
-    // 1. Hapus semua service milik motor ini
+    // Hapus semua service
     const servicesCol = collection(db, 'services');
     const q = query(servicesCol, where('motorId', '==', motorId));
     const serviceSnapshot = await getDocs(q);
+    await Promise.all(serviceSnapshot.docs.map(d => deleteDoc(d.ref)));
     
-    const deletePromises = [];
-    serviceSnapshot.docs.forEach(doc => {
-      deletePromises.push(deleteDoc(doc.ref));
-    });
+    // Hapus semua komponen
+    const komponenCol = collection(db, 'motors', motorId, 'komponen');
+    const komponenSnapshot = await getDocs(komponenCol);
+    await Promise.all(komponenSnapshot.docs.map(d => deleteDoc(d.ref)));
     
-    await Promise.all(deletePromises);
-    
-    // 2. Hapus motor
-    const motorRef = doc(db, 'motors', motorId);
-    await deleteDoc(motorRef);
-    
+    // Hapus motor
+    await deleteDoc(doc(db, 'motors', motorId));
     return true;
   } catch (error) {
     console.error('Error in deleteMotor:', error);
@@ -122,9 +122,96 @@ export async function deleteMotor(motorId) {
   }
 }
 
+// ============ KOMPONEN OPERATIONS ============
+
+export async function initKomponenDefault(motorId) {
+  checkDB();
+  const komponenDefault = [
+    { nama: 'Oli Mesin', intervalKm: 2500, intervalBulan: 2 },
+    { nama: 'Oli Gardan', intervalKm: 8000, intervalBulan: 8 },
+    { nama: 'Busi', intervalKm: 6000, intervalBulan: 6 },
+    { nama: 'Filter Udara', intervalKm: 5000, intervalBulan: 5 },
+    { nama: 'Kampas Rem Depan', intervalKm: 10000, intervalBulan: 12 },
+    { nama: 'Kampas Rem Belakang', intervalKm: 8000, intervalBulan: 10 },
+    { nama: 'Ban Depan', intervalKm: 15000, intervalBulan: 18 },
+    { nama: 'Ban Belakang', intervalKm: 10000, intervalBulan: 12 },
+    { nama: 'Aki', intervalKm: 20000, intervalBulan: 24 },
+    { nama: 'CVT/V-belt', intervalKm: 25000, intervalBulan: 24 }
+  ];
+
+  try {
+    const komponenCol = collection(db, 'motors', motorId, 'komponen');
+    const promises = komponenDefault.map(komp => addDoc(komponenCol, {
+      ...komp,
+      kmTerakhirGanti: 0,
+      tanggalTerakhirGanti: null
+    }));
+    await Promise.all(promises);
+    return true;
+  } catch (error) {
+    console.error('Error in initKomponenDefault:', error);
+    throw error;
+  }
+}
+
+export async function getKomponenMotor(motorId) {
+  checkDB();
+  try {
+    const komponenCol = collection(db, 'motors', motorId, 'komponen');
+    const snapshot = await getDocs(komponenCol);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      tanggalTerakhirGanti: doc.data().tanggalTerakhirGanti?.toDate?.() || doc.data().tanggalTerakhirGanti
+    }));
+  } catch (error) {
+    console.error('Error in getKomponenMotor:', error);
+    return [];
+  }
+}
+
+export async function addKomponen(motorId, data) {
+  checkDB();
+  try {
+    const komponenCol = collection(db, 'motors', motorId, 'komponen');
+    await addDoc(komponenCol, {
+      ...data,
+      kmTerakhirGanti: 0,
+      tanggalTerakhirGanti: null
+    });
+    return true;
+  } catch (error) {
+    console.error('Error in addKomponen:', error);
+    throw error;
+  }
+}
+
+export async function updateKomponen(motorId, komponenId, data) {
+  checkDB();
+  try {
+    const komponenRef = doc(db, 'motors', motorId, 'komponen', komponenId);
+    await updateDoc(komponenRef, data);
+    return true;
+  } catch (error) {
+    console.error('Error in updateKomponen:', error);
+    throw error;
+  }
+}
+
+export async function deleteKomponen(motorId, komponenId) {
+  checkDB();
+  try {
+    const komponenRef = doc(db, 'motors', motorId, 'komponen', komponenId);
+    await deleteDoc(komponenRef);
+    return true;
+  } catch (error) {
+    console.error('Error in deleteKomponen:', error);
+    throw error;
+  }
+}
+
 // ============ SERVICE OPERATIONS ============
 
-// Get riwayat service berdasarkan motor
 export async function getServicesByMotor(motorId) {
   checkDB();
   try {
@@ -136,7 +223,7 @@ export async function getServicesByMotor(motorId) {
     );
     
     const serviceSnapshot = await getDocs(q);
-    const serviceList = serviceSnapshot.docs.map(doc => {
+    return serviceSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -145,21 +232,18 @@ export async function getServicesByMotor(motorId) {
         createdAt: data.createdAt?.toDate?.() || data.createdAt
       };
     });
-    
-    return serviceList;
   } catch (error) {
     console.error('Error in getServicesByMotor:', error);
     return [];
   }
 }
 
-// Get semua service
 export async function getAllServices() {
   checkDB();
   try {
     const servicesCol = collection(db, 'services');
     const serviceSnapshot = await getDocs(servicesCol);
-    const serviceList = serviceSnapshot.docs.map(doc => {
+    return serviceSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -168,20 +252,17 @@ export async function getAllServices() {
         createdAt: data.createdAt?.toDate?.() || data.createdAt
       };
     });
-    return serviceList;
   } catch (error) {
     console.error('Error in getAllServices:', error);
     return [];
   }
 }
 
-// Tambah service baru dengan foto struk
 export async function addService(serviceData, fotoFile = null) {
   checkDB();
   try {
     let fotoStruk = null;
     
-    // Upload foto ke Cloudinary jika ada
     if (fotoFile) {
       const uploadResult = await uploadStrukFoto(fotoFile);
       fotoStruk = uploadResult.url;
@@ -213,7 +294,6 @@ export async function addService(serviceData, fotoFile = null) {
   }
 }
 
-// Hapus single service
 export async function deleteService(serviceId) {
   checkDB();
   try {
